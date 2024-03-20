@@ -5,6 +5,8 @@ import com.quito.utils.TlsHelpers
 import com.quito.utils.getOr
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import java.util.*
+import javax.net.ssl.*
+import java.security.cert.X509Certificate;
 
 data class MqttOptions(
   val clientId: String,
@@ -58,12 +60,27 @@ data class MqttOptions(
       setWill(will.topic, will.payload, will.qos.ordinal, will.retain)
     }
     if (this@MqttOptions.tls) {
-      socketFactory = tlsHelpers.getSocketFactory(
-        this@MqttOptions.android_caBase64,
-        this@MqttOptions.keyStoreKey,
-        this@MqttOptions.android_certificateBase64,
-        this@MqttOptions.keyStorePassword
-      )
+    val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+    override fun checkClientTrusted(
+        chain: Array<out X509Certificate>?,
+        authType: String?
+    ) {}
+    override fun checkServerTrusted(
+        chain: Array<out X509Certificate>?,
+        authType: String?
+    ) {}
+      override fun getAcceptedIssuers() = arrayOf<X509Certificate>()
+    })
+    val sslContext = SSLContext.getInstance("SSL")
+    sslContext.init(null, trustAllCerts, java.security.SecureRandom())
+    socketFactory = sslContext.socketFactory
+
+      // socketFactory = tlsHelpers.getSocketFactory(
+      //   this@MqttOptions.android_caBase64,
+      //   this@MqttOptions.keyStoreKey,
+      //   this@MqttOptions.android_certificateBase64,
+      //   this@MqttOptions.keyStorePassword
+      // )
     }
   }
 }
