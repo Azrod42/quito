@@ -1,5 +1,16 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
+#import <React/RCTBridgeModule.h>
+#import <React/RCTHTTPRequestHandler.h>
+
+
+@implementation RCTHTTPRequestHandler(IgnoreSSL)
+
+- (void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler
+{
+  completionHandler(NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust]);
+}
+@end
 
 @interface RCT_EXTERN_MODULE(Quito, RCTEventEmitter)
 
@@ -11,6 +22,11 @@
 + (BOOL)requiresMainQueueSetup
 {
     return NO;
+}
+
+- (void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler
+{
+  completionHandler(NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust]);
 }
 
 RCT_EXTERN_METHOD(createClient:(NSDictionary *)options
