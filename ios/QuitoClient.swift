@@ -25,14 +25,6 @@ class QuitoClient {
         self.client.keepAlive = options.keepaliveSec
         self.client.enableSSL = options.tls
         
-        if options.tls {
-            do {
-                try parseCertificate(options: options)
-            } catch let error {
-                throw error
-            }
-        }
-        
         self.client.didChangeState = { (_: CocoaMQTT, newState: CocoaMQTTConnState) in
             if newState == CocoaMQTTConnState.disconnected {
                 self.eventEmitter.sendEvent(event: QuitoEvent.CONNECTION_LOST)
